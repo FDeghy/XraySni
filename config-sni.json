@@ -1,19 +1,42 @@
 {
     "dns": {
         "hosts": {
+			"dns.cloudflare.com": "cloudflare.com",
             "dns.electrotm.org": "78.157.42.100",
-            "regexp:.*discord[^-]+": "162.159.135.234"
-            //"regexp:.*discord[^-]+": "95.81.89.126"
+            "sky.rethinkdns.com": "188.114.97.3",
+            "cvt01.dnscry.pt": [
+                "45.155.37.165"
+            ]
         },
         "servers": [
-            "https://dns.electrotm.org/dns-query"
-        ]
+			"https://dns.cloudflare.com/dns-query",
+            {
+                "address": "1.1.1.1",
+                "domains": [
+                    "geosite:private",
+                    "geosite:category-ir",
+                    "full:cloudflare.com"
+                ]
+            },
+            "https://cvt01.dnscry.pt/dns-query",
+            "https://sky.rethinkdns.com/",
+            {
+                "address": "https://dns.electrotm.org/dns-query",
+                "domains": [
+                    "domain:googleapis.com",
+                    "geosite:spotify"
+                ],
+                "skipFallback": true
+            }
+        ],
+        "queryStrategy": "UseIP"
     },
     "log": {
-        "error": "errors.log",
+        "error": "errors-sni.log",
         "loglevel": "warning"
     },
-    "inbounds": [{
+    "inbounds": [
+        {
             "listen": "127.0.0.1",
             "port": 443,
             "protocol": "dokodemo-door",
@@ -23,61 +46,41 @@
             },
             "sniffing": {
                 "enabled": true,
-                "destOverride": ["tls", "http", "quic"]
+                "destOverride": [
+                    "tls",
+                    "http",
+                    "quic"
+                ]
             },
             "streamSettings": {
                 "sockopt": {
-                    "tproxy": "tproxy",
-                    "tcpNoDelay": true,
-                    "tcpKeepAliveIdle": 100
+                    "tproxy": "tproxy"
                 }
             }
         }
     ],
-    "outbounds": [{
-            "tag": "block",
-            "protocol": "blackhole",
-            "settings": {
-                "response": {
-                    "type": "http"
-                }
-            }
-        }, {
+    "outbounds": [
+        {
             "protocol": "freedom",
             "tag": "free",
             "settings": {
-                "domainStrategy": "UseIPv4",
+                "domainStrategy": "UseIP",
                 "fragment": {
                     "packets": "tlshello",
-                    "length": "10-20",
-                    "interval": "10-20"
+                    "length": "10-15",
+                    "interval": "0-0"
                 }
             },
             "streamSettings": {
                 "sockopt": {
-                    "tcpNoDelay": true,
-                    "tcpKeepAliveIdle": 100
+                    "tcpNoDelay": true
                 }
             }
         }
     ],
     "routing": {
         "domainStrategy": "IPIfNonMatch",
-        "rules": [{
-                "type": "field",
-                "outboundTag": "free",
-                "domain": [
-                    "domain:electrotm.org",
-                    "regexp:.*discord.*",
-                    "domain:googleapis.com"
-                ]
-            }, {
-                "type": "field",
-                "outboundTag": "free",
-                "ip": [
-                    "162.159.135.234"
-                ]
-            }
+        "rules": [
         ]
     }
 }
