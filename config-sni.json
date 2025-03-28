@@ -1,0 +1,83 @@
+{
+    "dns": {
+        "hosts": {
+            "dns.electrotm.org": "78.157.42.100",
+            "regexp:.*discord[^-]+": "162.159.135.234"
+            //"regexp:.*discord[^-]+": "95.81.89.126"
+        },
+        "servers": [
+            "https://dns.electrotm.org/dns-query"
+        ]
+    },
+    "log": {
+        "error": "errors.log",
+        "loglevel": "warning"
+    },
+    "inbounds": [{
+            "listen": "127.0.0.1",
+            "port": 443,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "network": "tcp",
+                "followRedirect": true
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["tls", "http", "quic"]
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "tproxy": "tproxy",
+                    "tcpNoDelay": true,
+                    "tcpKeepAliveIdle": 100
+                }
+            }
+        }
+    ],
+    "outbounds": [{
+            "tag": "block",
+            "protocol": "blackhole",
+            "settings": {
+                "response": {
+                    "type": "http"
+                }
+            }
+        }, {
+            "protocol": "freedom",
+            "tag": "free",
+            "settings": {
+                "domainStrategy": "UseIPv4",
+                "fragment": {
+                    "packets": "tlshello",
+                    "length": "10-20",
+                    "interval": "10-20"
+                }
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "tcpNoDelay": true,
+                    "tcpKeepAliveIdle": 100
+                }
+            }
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPIfNonMatch",
+        "rules": [{
+                "type": "field",
+                "outboundTag": "free",
+                "domain": [
+                    "domain:electrotm.org",
+                    "regexp:.*discord.*",
+                    "domain:googleapis.com"
+                ]
+            }, {
+                "type": "field",
+                "outboundTag": "free",
+                "ip": [
+                    "162.159.135.234"
+                ]
+            }
+        ]
+    }
+}

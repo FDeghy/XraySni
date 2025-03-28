@@ -1,0 +1,83 @@
+{
+    "dns": {
+        "hosts": {
+            "dns.electrotm.org": "78.157.42.100",
+            "regexp:.*discord[^-]+": "127.0.0.1"
+            //"regexp:.*discord[^-]+": "95.81.89.126"
+        },
+        "servers": [
+            "https://dns.electrotm.org/dns-query"
+        ]
+    },
+    "log": {
+        "error": "errors.log",
+        "loglevel": "warning"
+    },
+    "inbounds": [{
+            "listen": "127.0.0.1",
+            "port": 53,
+            "protocol": "dokodemo-door",
+            "tag": "dns-in",
+            "settings": {
+                "address": "149.112.112.112",
+                "port": 53,
+                "network": "udp",
+                "followRedirect": false
+            }
+        }
+    ],
+    "outbounds": [{
+            "tag": "block",
+            "protocol": "blackhole",
+            "settings": {
+                "response": {
+                    "type": "http"
+                }
+            }
+        }, {
+            "protocol": "freedom",
+            "tag": "free",
+            "settings": {
+                "domainStrategy": "UseIPv4",
+                "fragment": {
+                    "packets": "tlshello",
+                    "length": "10-20",
+                    "interval": "10-20"
+                }
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "tcpNoDelay": true,
+                    "tcpKeepAliveIdle": 100
+                }
+            }
+        }, {
+            "tag": "dns-out",
+            "protocol": "dns",
+            "settings": {
+                "address": "149.112.112.112",
+                "port": 53,
+                "nonIPQuery": "skip"
+            }
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPIfNonMatch",
+        "rules": [{
+                "type": "field",
+                "outboundTag": "free",
+                "domain": [
+                    "domain:electrotm.org",
+                    "regexp:.*discord.*",
+                    "domain:googleapis.com"
+                ]
+            }, {
+                "type": "field",
+                "inboundTag": [
+                    "dns-in"
+                ],
+                "outboundTag": "dns-out"
+            }
+        ]
+    }
+}
