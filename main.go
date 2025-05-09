@@ -62,7 +62,7 @@ func main() {
 			}
 
 			// run xray dns
-			cmd := exec.Command(GetTruePath("xray.exe"), "run", "-c", GetTruePath("config-dns.json"))
+			cmd := exec.Command(GetTruePath("xray.exe"), "run", "-c", GetTruePath("config-dns.jsonc"))
 			cmd.SysProcAttr = &syscall.SysProcAttr{
 				CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS,
 			}
@@ -82,7 +82,7 @@ func main() {
 			}
 
 			// run xray sni
-			cmd = exec.Command(GetTruePath("xray.exe"), "run", "-c", GetTruePath("config-sni.json"))
+			cmd = exec.Command(GetTruePath("xray.exe"), "run", "-c", GetTruePath("config-sni.jsonc"))
 			cmd.SysProcAttr = &syscall.SysProcAttr{
 				CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS,
 			}
@@ -122,7 +122,13 @@ func main() {
 			// }
 
 			// success
-			intfc, _ := GetMainAdapterName()
+			var intfc string
+			for range 10 {
+				if intfc, err = GetMainAdapterName(); err == nil {
+					break
+				}
+				time.Sleep(500 * time.Millisecond)
+			}
 			time.Sleep(500 * time.Millisecond)
 			SetDNS(intfc, "127.0.0.1", "")
 			fmt.Println("\nSuccess!\nPress enter...")
@@ -312,7 +318,7 @@ func AddToStartup(args string) error {
 	}
 	exeName := strings.TrimSuffix(filepath.Base(exePath), filepath.Ext(exePath))
 
-	// Define an optimized XML configuration for the scheduled task
+	// Define the XML configuration for user logon (interactive only)
 	taskXML := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
@@ -326,6 +332,7 @@ func AddToStartup(args string) error {
   </Triggers>
   <Principals>
     <Principal id="Author">
+      <LogonType>InteractiveToken</LogonType>
       <RunLevel>HighestAvailable</RunLevel>
     </Principal>
   </Principals>
@@ -364,7 +371,7 @@ func AddToStartup(args string) error {
 		}
 	}()
 
-	// Create the scheduled task using the XML file
+	// Create the scheduled task without explicit credentials
 	cmd := exec.Command("schtasks", "/create", "/tn", exeName, "/xml", xmlFile, "/f")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -373,7 +380,7 @@ func AddToStartup(args string) error {
 		return fmt.Errorf("failed to create scheduled task: %v", err)
 	}
 
-	fmt.Printf("Successfully added %s to startup via scheduled task.\n", exeName)
+	fmt.Printf("Successfully added %s to startup via scheduled task at user logon.\n", exeName)
 	return nil
 }
 

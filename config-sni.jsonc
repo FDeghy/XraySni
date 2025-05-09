@@ -1,0 +1,244 @@
+{
+    "dns": {
+        "hosts": {
+            "dns.cloudflare.com": "cloudflare.com",
+            "sky.rethinkdns.com": "cloudflare.com",
+            "dns.quad9.net": "9.9.9.9"
+        },
+        "servers": [
+            "https://dns.cloudflare.com/dns-query",
+            "https://45.11.45.11/dns-query",
+            "https://185.222.222.222/dns-query",
+            "https://dns.quad9.net/dns-query",
+            "https://sky.rethinkdns.com/",
+            {
+                "address": "1.1.1.1",
+                "domains": [
+                    "geosite:private",
+                    "geosite:category-ir",
+                    "full:cloudflare.com",
+                    "full:anti-ban.dynx.pro"
+                ]
+            },
+            {
+                "address": "https://dns.cloudflare.com/dns-query",
+                "domains": [
+                    "geosite:discord"
+                ]
+            },
+            {
+                "address": "quic+local://anti-ban.dynx.pro:853",
+                "domains": [
+                    "geosite:sanctioned"
+                ]
+            }
+        ],
+        "queryStrategy": "ForceIP",
+        "disableFallback": true
+    },
+    "log": {
+        "error": "errors-sni.log",
+        "loglevel": "warning",
+        "dnsLog": true
+    },
+    "policy": {
+        "levels": {
+            "0": {
+                "connIdle": 300,
+                "uplinkOnly": 0,
+                "downlinkOnly": 0,
+                "bufferSize": 512
+            }
+        }
+    },
+    "inbounds": [{
+            "listen": "127.0.0.1",
+            "port": 443,
+            "protocol": "dokodemo-door",
+            "settings": {
+                //"address": "0.0.0.0",
+                //"port": 443,
+                //"network": "tcp,udp",
+                "network": "tcp",
+                "followRedirect": true
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "tls",
+                    "http",
+                    "quic"
+                ]
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "tproxy": "tproxy"
+                }
+            }
+        }, {
+            "listen": "127.0.0.1",
+            "port": 10805,
+            "protocol": "socks",
+            "settings": {
+                "auth": "noauth",
+                "udp": true
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "tls",
+                    "http",
+                    "quic"
+                ]
+            }
+
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 10806,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "ba5d99aa-2aac-41fb-9a75-233e9b7dc331"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "http",
+                    "tls",
+                    "quic"
+                ]
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "super-fragment",
+            "settings": {
+                "domainStrategy": "ForceIP",
+                "fragment": {
+                    "packets": "tlshello",
+                    "length": "6-10",
+                    "interval": "0-0"
+                }
+            },
+            "streamSettings": {
+                "sockopt": {
+                    //"dialerProxy": "chain1-fragment",
+                    "domainStrategy": "ForceIP"
+                }
+            }
+        }, {
+            "tag": "chain1-fragment",
+            "protocol": "freedom",
+            "settings": {
+                "fragment": {
+                    "packets": "1-3",
+                    "length": "517",
+                    "interval": "1"
+                }
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "dialerProxy": "chain2-fragment"
+                }
+            }
+        }, {
+            "tag": "chain2-fragment",
+            "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "ForceIP",
+                "fragment": {
+                    "packets": "1-1",
+                    "length": "1",
+                    "interval": "2"
+                }
+            }
+        }, {
+            "tag": "udp-noisesv4",
+            "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "ForceIPv4",
+                "noises": [
+                    {"type": "base64", "packet": "CAQABAoAB21pbmVjcmFmdAAECg", "delay": "10"}, {"type": "base64", "packet": "CAQABAoAB21pbmVjcmFmdAAECg", "delay": "10"},
+                    {"type": "base64", "packet": "CgYAB3BsYXllcg", "delay": "10"}, {"type": "base64", "packet": "CgYAB3BsYXllcg", "delay": "10"},
+                    {"type": "base64", "packet": "DwAECHNoYXJlZFNlY3JldAAAC2VuY3J5cHRlZERhdGE", "delay": "10"}, {"type": "base64", "packet": "DwAECHNoYXJlZFNlY3JldAAAC2VuY3J5cHRlZERhdGE", "delay": "10"}
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"},
+                    // {"type": "rand", "packet": "1250", "delay": "10"}, {"type": "rand", "packet": "1250", "delay": "10"}
+                ]
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "domainStrategy": "ForceIPv4"
+                }
+            }
+        }, {
+            "tag": "udp-noisesv6",
+            "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "ForceIPv6",
+                "noises": [
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"},
+                    {"type": "rand", "packet": "1230", "delay": "10"}, {"type": "rand", "packet": "1230", "delay": "10"}
+                ]
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "domainStrategy": "ForceIPv6"
+                }
+            }
+        },
+        {
+            "tag": "block",
+            "protocol": "blackhole"
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPOnDemand",
+        "rules": [
+            {
+                "outboundTag": "udp-noisesv4",
+                "network": "udp",
+                "ip": [
+                    "0.0.0.0/0"
+                ],
+                "port": 443
+            }, {
+                "outboundTag": "udp-noisesv6",
+                "network": "udp",
+                "ip": [
+                    "::/0"
+                ],
+                "port": 443
+            }, {
+                "outboundTag": "super-fragment",
+                "network": "tcp"
+            }
+        ]
+    }
+}

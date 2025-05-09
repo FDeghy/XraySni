@@ -1,0 +1,99 @@
+{
+    "dns": {
+        "hosts": {
+            "dns.cloudflare.com": "cloudflare.com",
+            "geosite:discord": "127.0.0.1",
+            "geosite:twitch": "127.0.0.1",
+            "geosite:youtube": "127.0.0.1",
+            "geosite:twitter": "127.0.0.1",
+            "geosite:reddit": "127.0.0.1",
+            "geosite:meta": "127.0.0.1",
+            "geosite:fandom": "127.0.0.1",
+            "domain:donyayeserial.com": "127.0.0.1",
+            "domain:gofile.io": "127.0.0.1",
+            "domain:herokuapp.com": "127.0.0.1",
+            "domain:b-cdn.net": "127.0.0.1"
+        },
+        "servers": [
+            "https://dns.cloudflare.com/dns-query",
+            "https://45.11.45.11/dns-query",
+            "https://185.222.222.222/dns-query",
+            {
+                "address": "1.1.1.1",
+                "domains": [
+                    "geosite:private",
+                    "geosite:category-ir",
+                    "full:cloudflare.com",
+                    "full:anti-ban.dynx.pro"
+                ]
+            },
+            {
+                "address": "quic+local://anti-ban.dynx.pro:853",
+                //"address": "https+local://dns.electrotm.org/dns-query",
+                "domains": [
+                    "geosite:sanctioned"
+                ]
+            }
+        ],
+        "queryStrategy": "UseIP",
+        "disableFallback": true,
+        "tag": "dns_inbound"
+    },
+    "log": {
+        "error": "errors-dns.log",
+        "loglevel": "warning",
+        "dnsLog": false
+    },
+    "inbounds": [
+        {
+            "listen": "127.0.0.1",
+            "port": 53,
+            "protocol": "dokodemo-door",
+            "tag": "dns-in",
+            "settings": {
+                "address": "1.1.1.1",
+                "port": 53,
+                "network": "tcp,udp"
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "free",
+            "settings": {
+                "domainStrategy": "UseIP",
+                "fragment": {
+                    "packets": "tlshello",
+                    "length": "6-10",
+                    "interval": "0-0"
+                }
+            },
+            "streamSettings": {
+                "sockopt": {
+                }
+            }
+        },
+        {
+            "tag": "dns-out",
+            "protocol": "dns",
+            "settings": {
+                "address": "1.1.1.1",
+                "port": 53,
+                "nonIPQuery": "skip"
+            }
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPIfNonMatch",
+        "rules": [
+            {
+                "type": "field",
+                "inboundTag": [
+                    "dns-in"
+                ],
+                "outboundTag": "dns-out"
+            }
+        ]
+    }
+}
